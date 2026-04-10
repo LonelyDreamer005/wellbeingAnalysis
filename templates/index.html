@@ -115,19 +115,27 @@
 <body>
   <main class="card">
     <h1>Screen Time Predictor</h1>
-    <p>Choose a target column and estimate its value from daily screen time hours.</p>
+    <p>Choose one input column, enter a value, choose any target column, then predict.</p>
 
     <form method="post" class="grid">
       <div>
-        <label for="screen_time_hours">Screen time hours per day</label>
+        <label for="input_col">Input column</label>
+        <select id="input_col" name="input_col" required>
+          {% for c in input_cols %}
+            <option value="{{ c }}" {% if c == selected_input_col %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label for="input_value">Input value</label>
         <input
-          id="screen_time_hours"
-          name="screen_time_hours"
+          id="input_value"
+          name="input_value"
           type="number"
           step="0.1"
-          min="0"
           required
-          value="{{ entered_hours if entered_hours is not none else '' }}"
+          value="{{ entered_value if entered_value is not none else '' }}"
         />
       </div>
 
@@ -150,6 +158,7 @@
     {% if prediction is not none %}
       <section class="result">
         <div><strong>Prediction:</strong> {{ prediction | round(2) }}</div>
+        <div><strong>Input:</strong> <code>{{ selected_input_col }}</code> = {{ entered_value }}</div>
         <div><strong>Column:</strong> <code>{{ selected_col }}</code></div>
         <div><strong>Best model:</strong> {{ model_name }} (R2={{ model_r2 | round(3) }})</div>
       </section>

@@ -13,8 +13,6 @@ DATA_CANDIDATES = [
     Path("data/refined_screen_time_dataset.csv"),
     Path("refined_screen_time_dataset.csv"),
 ]
-FEATURE_COL = "screen_time_hours"
-EXCLUDED_TARGETS = {FEATURE_COL, "screen_time_check", "screen_time_diff"}
 
 
 def load_data() -> pd.DataFrame:
@@ -24,13 +22,12 @@ def load_data() -> pd.DataFrame:
     return pd.read_csv(data_path)
 
 
-def available_target_columns(df: pd.DataFrame) -> list[str]:
-    numeric_cols = df.select_dtypes(include="number").columns.tolist()
-    return [c for c in numeric_cols if c not in EXCLUDED_TARGETS]
+def available_numeric_columns(df: pd.DataFrame) -> list[str]:
+    return df.select_dtypes(include="number").columns.tolist()
 
 
-def train_best_model(df: pd.DataFrame, target_col: str):
-    X = df[[FEATURE_COL]]
+def train_best_model(df: pd.DataFrame, input_col: str, target_col: str):
+    X = df[[input_col]]
     y = df[target_col]
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -63,56 +60,67 @@ def train_best_model(df: pd.DataFrame, target_col: str):
 @app.route("/", methods=["GET", "POST"])
 def index():
     df = load_data()
-    targets = available_target_columns(df)
+    numeric_cols = available_numeric_columns(df)
 
     prediction = None
+    selected_input_col = None
     selected_col = None
-    entered_hours = None
+    entered_value = None
     model_name = None
     model_r2 = None
     error = None
 
-    if not targets:
+    if not numeric_cols:
         error = "No numeric target columns are available for prediction."
         return render_template(
             "index.html",
+            input_cols=[],
             targets=[],
             prediction=prediction,
+            selected_input_col=selected_input_col,
             selected_col=selected_col,
-            entered_hours=entered_hours,
+            entered_value=entered_value,
             model_name=model_name,
             model_r2=model_r2,
             error=error,
         )
 
+    default_input_col = (
+        "screen_time_hours" if "screen_time_hours" in numeric_cols else numeric_cols[0]
+    )
     default_col = (
-        "mental_wellness_index_0_100"
-        if "mental_wellness_index_0_100" in targets
-        else targets[0]
+        "mental_wellness_index_0_100" if "mental_wellness_index_0_100" in numeric_cols else numeric_cols[0]
     )
 
     if request.method == "POST":
+        selected_input_col = request.form.get("input_col", default_input_col)
         selected_col = request.form.get("target_col", default_col)
-        entered_hours = request.form.get("screen_time_hours", "").strip()
+        entered_value = request.form.get("input_value", "").strip()
 
-        if selected_col not in targets:
-            error = "Selected column is not valid."
+        if selected_input_col not in numeric_cols or selected_col not in numeric_cols:
+            error = "Selected input or target column is not valid."
+        elif selected_input_col == selected_col:
+            error = "Input column and target column must be different."
         else:
             try:
-                hours_value = float(entered_hours)
-                model, model_name, model_r2 = train_best_model(df, selected_col)
+                input_value = float(entered_value)
+                model, model_name, model_r2 = train_best_model(
+                    df, selected_input_col, selected_col
+                )
                 prediction = float(
-                    model.predict(pd.DataFrame({FEATURE_COL: [hours_value]}))[0]
+                    model.predict(pd.DataFrame({selected_input_col: [input_value]}))[0]
                 )
             except ValueError:
-                error = "Please enter a valid number for screen time hours."
+                error = "Please enter a valid number for input value."
 
     return render_template(
         "index.html",
-        targets=targets,
+        input_cols=numeric_cols,
+        targets=numeric_cols,
         prediction=prediction,
+        selected_input_col=selected_input_col or default_input_col,
         selected_col=selected_col or default_col,
-        entered_hours=entered_hours,
+        entered_value=entered_value,
         model_name=model_name,
         model_r2=model_r2,
         error=error,
