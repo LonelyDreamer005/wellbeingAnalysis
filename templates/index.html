@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wellbeing Predictor</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --panel: #fffaf2;
+      --ink: #1f1b16;
+      --accent: #b45f06;
+      --accent-soft: #ffe3b8;
+      --line: #e7d9c5;
+      --ok: #0a7b53;
+      --err: #9f2f2f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 20%, #fff5df 0%, transparent 40%),
+        radial-gradient(circle at 90% 10%, #ffe9ca 0%, transparent 35%),
+        var(--bg);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(720px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 12px 30px rgba(88, 54, 20, 0.12);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.5rem, 2.5vw, 2.1rem);
+    }
+
+    p {
+      margin: 0 0 18px;
+      color: #5b4a35;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font: inherit;
+      background: #fff;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 16px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      width: fit-content;
+    }
+
+    button:hover {
+      filter: brightness(0.95);
+    }
+
+    .result, .error {
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid;
+    }
+
+    .result {
+      background: #effaf4;
+      border-color: #bde3ce;
+      color: var(--ok);
+    }
+
+    .error {
+      background: #fff1f1;
+      border-color: #efc1c1;
+      color: var(--err);
+    }
+
+    code {
+      background: var(--accent-soft);
+      padding: 1px 6px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Screen Time Predictor</h1>
+    <p>Choose a target column and estimate its value from daily screen time hours.</p>
+
+    <form method="post" class="grid">
+      <div>
+        <label for="screen_time_hours">Screen time hours per day</label>
+        <input
+          id="screen_time_hours"
+          name="screen_time_hours"
+          type="number"
+          step="0.1"
+          min="0"
+          required
+          value="{{ entered_hours if entered_hours is not none else '' }}"
+        />
+      </div>
+
+      <div>
+        <label for="target_col">Target column</label>
+        <select id="target_col" name="target_col" required>
+          {% for c in targets %}
+            <option value="{{ c }}" {% if c == selected_col %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit">Predict</button>
+    </form>
+
+    {% if error %}
+      <section class="error">{{ error }}</section>
+    {% endif %}
+
+    {% if prediction is not none %}
+      <section class="result">
+        <div><strong>Prediction:</strong> {{ prediction | round(2) }}</div>
+        <div><strong>Column:</strong> <code>{{ selected_col }}</code></div>
+        <div><strong>Best model:</strong> {{ model_name }} (R2={{ model_r2 | round(3) }})</div>
+      </section>
+    {% endif %}
+  </main>
+</body>
+</html>
