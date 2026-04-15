@@ -14,21 +14,21 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #0d1117;
-      --surface:   #161b22;
-      --surface2:  #1c2230;
-      --border:    #30363d;
-      --border2:   #21262d;
-      --text:      #e6edf3;
-      --text-sub:  #8b949e;
-      --text-dim:  #484f58;
-      --accent:    #58a6ff;
-      --accent2:   #79c0ff;
-      --green:     #3fb950;
-      --orange:    #d29922;
-      --red:       #f85149;
-      --purple:    #bc8cff;
-      --teal:      #39d353;
+      --bg:        #f0f4f8;
+      --surface:   #ffffff;
+      --surface2:  #f6f8fa;
+      --border:    #d1d9e0;
+      --border2:   #e4e9ee;
+      --text:      #1a202c;
+      --text-sub:  #5a6a7e;
+      --text-dim:  #a0adb8;
+      --accent:    #2563eb;
+      --accent2:   #3b82f6;
+      --green:     #16a34a;
+      --orange:    #d97706;
+      --red:       #dc2626;
+      --purple:    #7c3aed;
+      --teal:      #0891b2;
       --sidebar-w: 240px;
     }
 
@@ -40,7 +40,7 @@
       color: var(--text);
       font-size: 13px;
       line-height: 1.5;
-      overflow: hidden; /* shell never scrolls */
+      overflow: hidden;
     }
 
     /* ═══════════════════════════════════════════
@@ -62,6 +62,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.05);
     }
 
     .sidebar-logo {
@@ -118,12 +119,13 @@
       font-size: 0.78rem;
       color: var(--text);
       outline: none;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
     select:focus, input[type="number"]:focus {
       border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
     }
-    select option { background: var(--surface2); }
+    select option { background: var(--surface); }
 
     .btn-predict {
       width: 100%;
@@ -135,11 +137,12 @@
       font-weight: 700;
       cursor: pointer;
       color: #fff;
-      background: linear-gradient(135deg, #1f6feb 0%, #388bfd 100%);
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
       letter-spacing: 0.2px;
-      transition: filter 0.15s, transform 0.12s;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+      transition: filter 0.15s, transform 0.12s, box-shadow 0.15s;
     }
-    .btn-predict:hover { filter: brightness(1.12); transform: translateY(-1px); }
+    .btn-predict:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(37,99,235,0.35); }
     .btn-predict:active { transform: translateY(0); }
 
     /* Result panel inside sidebar */
@@ -160,16 +163,16 @@
     }
     .result-item:last-child { border-bottom: none; }
     .result-item .ri-key { color: var(--text-sub); }
-    .result-item .ri-val { font-weight: 700; color: var(--text); text-align: right; word-break: break-all; }
-    .result-item .ri-val.big { font-size: 1rem; color: var(--green); }
+    .result-item .ri-val { font-weight: 700; color: var(--text); text-align: right; word-break: break-all; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .result-item .ri-val.big { font-size: 1.05rem; color: var(--green); }
     .alert-box {
       border-radius: 8px;
       padding: 9px 11px;
       font-size: 0.75rem;
       line-height: 1.55;
     }
-    .alert-box.err { background: rgba(248,81,73,0.12); border: 1px solid rgba(248,81,73,0.35); color: #ffa198; }
-    .alert-box.idle { background: var(--surface2); border: 1px solid var(--border); color: var(--text-sub); }
+    .alert-box.err  { background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; }
+    .alert-box.idle { background: #f0f9ff; border: 1px solid #bae6fd; color: #0369a1; }
 
     /* ── Main area ── */
     .main {
@@ -190,6 +193,7 @@
       padding: 0 18px;
       gap: 16px;
       background: var(--surface);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
     .topbar h1 {
       font-size: 0.88rem;
@@ -224,10 +228,10 @@
       font-weight: 800;
       font-size: 0.82rem;
     }
-    .stat-pill .sp-val.accent  { color: var(--accent); }
-    .stat-pill .sp-val.green   { color: var(--green);  }
-    .stat-pill .sp-val.orange  { color: var(--orange); }
-    .stat-pill .sp-val.purple  { color: var(--purple); }
+    .stat-pill .sp-val.accent  { color: #2563eb; }
+    .stat-pill .sp-val.green   { color: #16a34a; }
+    .stat-pill .sp-val.orange  { color: #d97706; }
+    .stat-pill .sp-val.purple  { color: #7c3aed; }
     .stat-pill .sp-lbl { color: var(--text-sub); }
 
     /* content canvas */
@@ -255,6 +259,7 @@
       flex-direction: column;
       min-width: 0;
       animation: fadeUp 0.4s ease;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
     }
     .chart-card.full-row {
       grid-column: 1 / -1;
@@ -269,6 +274,7 @@
       font-size: 0.8rem;
       font-weight: 700;
       color: var(--text);
+      letter-spacing: 0.1px;
     }
     .cc-sub {
       font-size: 0.68rem;
@@ -281,7 +287,7 @@
     .table-wrap {
       overflow: auto;
       max-height: 160px;
-      border: 1px solid var(--border2);
+      border: 1px solid var(--border);
       border-radius: 8px;
       margin-top: 10px;
       scrollbar-width: thin;
@@ -301,7 +307,7 @@
       color: var(--text);
     }
     th {
-      background: var(--surface2);
+      background: #f1f5f9;
       color: var(--text-sub);
       font-weight: 600;
       font-size: 0.68rem;
@@ -315,7 +321,7 @@
       position: sticky;
       left: 0;
       z-index: 2;
-      background: var(--surface2);
+      background: #f8fafc;
       color: var(--text-sub);
     }
 
@@ -324,19 +330,16 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* scrollbar for sidebar */
-    .sidebar-body::-webkit-scrollbar { width: 4px; }
-    .sidebar-body::-webkit-scrollbar-track { background: transparent; }
-    .sidebar-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-    /* canvas scrollbar */
-    .canvas::-webkit-scrollbar { width: 5px; }
-    .canvas::-webkit-scrollbar-track { background: transparent; }
-    .canvas::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-    /* table scrollbar */
-    .table-wrap::-webkit-scrollbar { height: 4px; width: 4px; }
-    .table-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    /* scrollbars */
+    .sidebar-body::-webkit-scrollbar,
+    .canvas::-webkit-scrollbar,
+    .table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
+    .sidebar-body::-webkit-scrollbar-track,
+    .canvas::-webkit-scrollbar-track,
+    .table-wrap::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-body::-webkit-scrollbar-thumb,
+    .canvas::-webkit-scrollbar-thumb,
+    .table-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
   </style>
 </head>
 <body>
@@ -531,12 +534,12 @@
   const corrLabels       = JSON.parse(document.getElementById('corr-labels-data').textContent);
   const corrValues       = JSON.parse(document.getElementById('corr-values-data').textContent);
 
-  const PAPER  = '#161b22';
-  const PLOT   = '#0d1117';
-  const GRID   = '#21262d';
-  const TICK   = '#8b949e';
-  const FONT   = { family: 'Inter, system-ui, sans-serif', color: '#e6edf3', size: 10 };
-  const MARGIN = { l: 44, r: 10, t: 6, b: 40 };
+  const PAPER  = '#ffffff';
+  const PLOT   = '#f8fafc';
+  const GRID   = '#e2e8f0';
+  const TICK   = '#64748b';
+  const FONT   = { family: 'Inter, system-ui, sans-serif', color: '#1a202c', size: 10 };
+  const MARGIN = { l: 46, r: 10, t: 6, b: 40 };
 
   const BASE = {
     paper_bgcolor: PAPER,
@@ -545,7 +548,13 @@
     margin: MARGIN
   };
 
-  const axStyle = { gridcolor: GRID, tickcolor: TICK, tickfont: { size: 9.5, color: TICK }, linecolor: GRID, zerolinecolor: GRID };
+  const axStyle = {
+    gridcolor: GRID,
+    tickcolor: TICK,
+    tickfont:  { size: 9.5, color: TICK },
+    linecolor: '#cbd5e1',
+    zerolinecolor: GRID
+  };
 
   /* ─── Scatter ─── */
   Plotly.newPlot('scatter-chart',
@@ -554,7 +563,7 @@
       y: scatterPoints.map(p => p.y),
       mode: 'markers',
       type: 'scatter',
-      marker: { color: '#58a6ff', size: 5, opacity: 0.55, line: { color: '#0d1117', width: 0.5 } }
+      marker: { color: '#2563eb', size: 5, opacity: 0.5, line: { color: '#ffffff', width: 0.5 } }
     }],
     {
       ...BASE,
@@ -565,21 +574,21 @@
   );
 
   /* ─── Distribution ─── */
-  const PAL = ['#58a6ff','#3fb950','#d29922','#bc8cff'];
+  const PAL = ['#2563eb', '#16a34a', '#d97706', '#7c3aed'];
   const distTraces = Object.entries(distributionData).map(([name, vals], i) => ({
     y: vals, name,
     type: 'box', boxmean: 'sd',
     jitter: 0.25, pointpos: -1.5,
     boxpoints: 'suspectedoutliers',
-    marker: { color: PAL[i % 4], size: 3, opacity: 0.55 },
+    marker: { color: PAL[i % 4], size: 3, opacity: 0.5 },
     line: { width: 1.2, color: PAL[i % 4] },
-    fillcolor: PAL[i % 4] + '22'
+    fillcolor: PAL[i % 4] + '18'
   }));
   Plotly.newPlot('distribution-chart', distTraces,
     {
       ...BASE,
       yaxis: { ...axStyle, title: { text: 'Value', font: { size: 9, color: TICK } } },
-      legend: { orientation: 'h', y: -0.22, font: { size: 9, color: TICK }, bgcolor: 'transparent' }
+      legend: { orientation: 'h', y: -0.22, font: { size: 9, color: TICK }, bgcolor: 'rgba(0,0,0,0)' }
     },
     { responsive: true, displayModeBar: false }
   );
@@ -592,9 +601,9 @@
       y: corrLabels,
       type: 'heatmap',
       colorscale: [
-        [0,   '#f85149'],
-        [0.5, '#21262d'],
-        [1,   '#58a6ff']
+        [0,   '#dc2626'],
+        [0.5, '#f1f5f9'],
+        [1,   '#2563eb']
       ],
       zmin: -1, zmax: 1,
       showscale: true,
@@ -602,14 +611,14 @@
         thickness: 10,
         len: 0.85,
         tickfont: { size: 8.5, color: TICK },
-        bordercolor: '#30363d'
+        bordercolor: '#e2e8f0'
       }
     }],
     {
       ...BASE,
       margin: { l: 90, r: 70, t: 6, b: 90 },
-      xaxis: { tickangle: -40, tickfont: { size: 8.5, color: TICK }, linecolor: GRID },
-      yaxis: { autorange: 'reversed', tickfont: { size: 8.5, color: TICK }, linecolor: GRID }
+      xaxis: { tickangle: -40, tickfont: { size: 8.5, color: TICK }, linecolor: '#cbd5e1' },
+      yaxis: { autorange: 'reversed', tickfont: { size: 8.5, color: TICK }, linecolor: '#cbd5e1' }
     },
     { responsive: true, displayModeBar: false }
   );
