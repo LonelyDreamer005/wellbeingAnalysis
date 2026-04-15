@@ -3,199 +3,616 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Screen Time Predictor</title>
+  <title>Wellbeing Analytics Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <style>
+    /* ═══════════════════════════════════════════
+       RESET & TOKENS
+    ═══════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --bg: #fdf6f6; /* Lighter pink background */
-      --panel: #ffffff; /* White panels */
-      --ink: #333333; /* Darker text for contrast */
-      --accent: #e57373; /* Softer pink accent */
-      --accent-soft: #ffcdd2; /* Very light pink for highlights */
-      --line: #f0e4e4; /* Light pinkish line color */
-      --ok: #4caf50; /* Green for success */
-      --err: #f44336; /* Red for error */
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #1c2230;
+      --border:    #30363d;
+      --border2:   #21262d;
+      --text:      #e6edf3;
+      --text-sub:  #8b949e;
+      --text-dim:  #484f58;
+      --accent:    #58a6ff;
+      --accent2:   #79c0ff;
+      --green:     #3fb950;
+      --orange:    #d29922;
+      --red:       #f85149;
+      --purple:    #bc8cff;
+      --teal:      #39d353;
+      --sidebar-w: 240px;
     }
 
-    * { box-sizing: border-box; }
-
-    html, body {
-      height: 100%;
-      margin: 0;
-    }
+    html, body { height: 100%; }
 
     body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      color: var(--ink);
-      background-color: var(--bg);
-      font-size: 18px; /* Increased base font size */
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+      overflow: hidden; /* shell never scrolls */
     }
 
-    .container {
-      width: 100%;
-      height: 100%;
+    /* ═══════════════════════════════════════════
+       APP SHELL — sidebar + main
+    ═══════════════════════════════════════════ */
+    .app {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      background: var(--panel);
-      padding: 48px; /* Increased padding */
+      overflow: hidden;
     }
 
-    h1 {
-      text-align: center;
-      margin: 0 0 32px; /* Increased bottom margin */
-      font-size: clamp(1.8rem, 3vw, 2.5rem); /* Larger font size */
-      border: 1px solid var(--line);
-      padding: 24px; /* Increased padding */
-      border-radius: 16px; /* Smoother corners */
-      background-color: var(--accent-soft);
+    .sidebar-logo {
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo .brand {
+      font-size: 0.9rem;
+      font-weight: 800;
       color: var(--accent);
+      letter-spacing: 0.3px;
+    }
+    .sidebar-logo .tagline {
+      font-size: 0.7rem;
+      color: var(--text-sub);
+      margin-top: 2px;
     }
 
-    .main-content {
-      display: grid;
-      grid-template-columns: 1fr 1.5fr;
-      gap: 32px; /* Increased gap */
-      flex-grow: 1;
+    .sidebar-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
     }
 
-    .input-panel, .output-panel {
-      border: 1px solid var(--line);
-      border-radius: 16px; /* Smoother corners */
-      padding: 32px; /* Increased padding */
+    .sidebar-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      margin: 0 0 8px 4px;
     }
 
-    .input-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 24px; /* Increased gap */
-    }
+    /* ── Predict form ── */
+    .predict-form { display: grid; gap: 10px; }
 
-    label {
-      font-weight: 600;
+    .field-group label {
       display: block;
-      margin-bottom: 8px; /* Increased margin */
-      font-size: 1.1rem; /* Larger font for labels */
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      margin-bottom: 4px;
     }
 
-    input, select {
+    select, input[type="number"] {
       width: 100%;
-      padding: 14px 16px; /* Increased padding */
-      border: 1px solid var(--line);
-      border-radius: 12px; /* Smoother corners */
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 7px 10px;
       font: inherit;
-      background: #fff;
-      font-size: 1.1rem; /* Larger font for inputs */
+      font-size: 0.78rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
     }
+    select:focus, input[type="number"]:focus {
+      border-color: var(--accent);
+    }
+    select option { background: var(--surface2); }
 
-    button {
-      border: 0;
-      border-radius: 12px; /* Smoother corners */
-      padding: 16px 20px; /* Increased padding */
-      background: var(--accent);
-      color: #fff;
+    .btn-predict {
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      padding: 9px;
+      font: inherit;
+      font-size: 0.8rem;
       font-weight: 700;
       cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, #1f6feb 0%, #388bfd 100%);
+      letter-spacing: 0.2px;
+      transition: filter 0.15s, transform 0.12s;
+    }
+    .btn-predict:hover { filter: brightness(1.12); transform: translateY(-1px); }
+    .btn-predict:active { transform: translateY(0); }
+
+    /* Result panel inside sidebar */
+    .result-box {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .result-box .sidebar-label { margin-bottom: 10px; }
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 6px;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border2);
+      font-size: 0.73rem;
+    }
+    .result-item:last-child { border-bottom: none; }
+    .result-item .ri-key { color: var(--text-sub); }
+    .result-item .ri-val { font-weight: 700; color: var(--text); text-align: right; word-break: break-all; }
+    .result-item .ri-val.big { font-size: 1rem; color: var(--green); }
+    .alert-box {
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-size: 0.75rem;
+      line-height: 1.55;
+    }
+    .alert-box.err { background: rgba(248,81,73,0.12); border: 1px solid rgba(248,81,73,0.35); color: #ffa198; }
+    .alert-box.idle { background: var(--surface2); border: 1px solid var(--border); color: var(--text-sub); }
+
+    /* ── Main area ── */
+    .main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* topbar */
+    .topbar {
+      height: 46px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 16px;
+      background: var(--surface);
+    }
+    .topbar h1 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .topbar-sub {
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      white-space: nowrap;
+    }
+
+    /* stat pills in topbar */
+    .stat-pills {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+    .stat-pill {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 3px 11px;
+      font-size: 0.7rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .stat-pill .sp-val {
+      font-weight: 800;
+      font-size: 0.82rem;
+    }
+    .stat-pill .sp-val.accent  { color: var(--accent); }
+    .stat-pill .sp-val.green   { color: var(--green);  }
+    .stat-pill .sp-val.orange  { color: var(--orange); }
+    .stat-pill .sp-val.purple  { color: var(--purple); }
+    .stat-pill .sp-lbl { color: var(--text-sub); }
+
+    /* content canvas */
+    .canvas {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto 1fr;
+      gap: 12px;
+      align-content: start;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    /* ── Chart cards ── */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      animation: fadeUp 0.4s ease;
+    }
+    .chart-card.full-row {
+      grid-column: 1 / -1;
+    }
+    .cc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .cc-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .cc-sub {
+      font-size: 0.68rem;
+      color: var(--text-sub);
+    }
+
+    .plot-wrap { flex: 1; min-height: 0; }
+
+    /* Correlation table */
+    .table-wrap {
+      overflow: auto;
+      max-height: 160px;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      margin-top: 10px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    table {
+      border-collapse: collapse;
       width: 100%;
-      margin-top: auto; /* Pushes button to the bottom */
-      font-size: 1.2rem; /* Larger font for button */
+      min-width: 520px;
+      font-size: 0.7rem;
+    }
+    th, td {
+      border: 1px solid var(--border2);
+      padding: 4px 8px;
+      text-align: center;
+      white-space: nowrap;
+      color: var(--text);
+    }
+    th {
+      background: var(--surface2);
+      color: var(--text-sub);
+      font-weight: 600;
+      font-size: 0.68rem;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .row-head {
+      text-align: left;
+      font-weight: 600;
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: var(--surface2);
+      color: var(--text-sub);
     }
 
-    button:hover {
-      filter: brightness(0.95);
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    .output-panel h2 {
-      margin-top: 0;
-      color: var(--accent);
-    }
+    /* scrollbar for sidebar */
+    .sidebar-body::-webkit-scrollbar { width: 4px; }
+    .sidebar-body::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-    .result, .error {
-      margin-top: 24px; /* Increased margin */
-      padding: 20px; /* Increased padding */
-      border-radius: 12px; /* Smoother corners */
-      border: 1px solid;
-      font-size: 1.1rem; /* Larger font for results */
-    }
+    /* canvas scrollbar */
+    .canvas::-webkit-scrollbar { width: 5px; }
+    .canvas::-webkit-scrollbar-track { background: transparent; }
+    .canvas::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-    .result {
-      background: #e8f5e9;
-      border-color: #a5d6a7;
-      color: var(--ok);
-    }
-
-    .error {
-      background: #ffebee;
-      border-color: #ef9a9a;
-      color: var(--err);
-    }
-
-    code {
-      background: var(--accent-soft);
-      padding: 2px 8px;
-      border-radius: 6px;
-      color: var(--accent);
-    }
+    /* table scrollbar */
+    .table-wrap::-webkit-scrollbar { height: 4px; width: 4px; }
+    .table-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
   </style>
 </head>
 <body>
-  <main class="container">
-    <h1>Screen Time Predictor</h1>
-    
-    <div class="main-content">
-      <div class="input-panel">
-        <form method="post" style="display: contents;">
-          <div>
-            <label for="input_col">Input column</label>
-            <select id="input_col" name="input_col" required>
-              {% for c in input_cols %}
-                <option value="{{ c }}" {% if c == selected_input_col %}selected{% endif %}>{{ c }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          
-          <div>
-            <label for="input_value">Input value</label>
-            <input
-              id="input_value"
-              name="input_value"
-              type="number"
-              step="0.1"
-              required
-              value="{{ entered_value if entered_value is not none else '' }}"
-            />
-          </div>
 
-          <div>
-            <label for="target_col">Target column</label>
-            <select id="target_col" name="target_col" required>
-              {% for c in targets %}
-                <option value="{{ c }}" {% if c == selected_col %}selected{% endif %}>{{ c }}</option>
-              {% endfor %}
-            </select>
-          </div>
+<div class="app">
 
-          <button type="submit">Predict</button>
-        </form>
-      </div>
+  <!-- ══════════════════════════════
+       SIDEBAR
+  ══════════════════════════════ -->
+  <aside class="sidebar">
 
-      <div class="output-panel">
-        <h2>OUTPUT</h2>
+    <div class="sidebar-logo">
+      <div class="brand">📊 Wellbeing Analytics</div>
+      <div class="tagline">Screen Time · Mental Health · ML</div>
+    </div>
+
+    <div class="sidebar-body">
+
+      <p class="sidebar-label">Run Prediction</p>
+
+      <form class="predict-form" method="post">
+        <div class="field-group">
+          <label for="input_col">Input feature</label>
+          <select id="input_col" name="input_col" required>
+            {% for c in input_cols %}
+              <option value="{{ c }}" {% if c == selected_input_col %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label for="input_value">Value</label>
+          <input
+            id="input_value"
+            name="input_value"
+            type="number"
+            step="0.1"
+            placeholder="e.g. 4.5"
+            required
+            value="{{ entered_value if entered_value is not none else '' }}"
+          />
+        </div>
+
+        <div class="field-group">
+          <label for="target_col">Target feature</label>
+          <select id="target_col" name="target_col" required>
+            {% for c in targets %}
+              <option value="{{ c }}" {% if c == selected_col %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button class="btn-predict" type="submit">▶ Run Prediction</button>
+      </form>
+
+      <!-- Result -->
+      <div class="result-box">
+        <p class="sidebar-label">Result</p>
         {% if error %}
-          <section class="error">{{ error }}</section>
+          <div class="alert-box err">{{ error }}</div>
         {% elif prediction is not none %}
-          <section class="result">
-            <div><strong>Prediction:</strong> {{ prediction | round(2) }}</div>
-            <hr style="border: none; border-top: 1px solid #a5d6a7; margin: 8px 0;">
-            <div><strong>Input:</strong> <code>{{ selected_input_col }}</code> = {{ entered_value }}</div>
-            <div><strong>Target:</strong> <code>{{ selected_col }}</code></div>
-            <hr style="border: none; border-top: 1px solid #a5d6a7; margin: 8px 0;">
-            <div><strong>Model Used:</strong> {{ model_name }}</div>
-            <div><strong>Model R² Score:</strong> {{ model_r2 | round(3) }}</div>
-          </section>
+          <div class="result-item">
+            <span class="ri-key">Predicted value</span>
+            <span class="ri-val big">{{ prediction | round(2) }}</span>
+          </div>
+          <div class="result-item">
+            <span class="ri-key">Input</span>
+            <span class="ri-val">{{ entered_value }}</span>
+          </div>
+          <div class="result-item">
+            <span class="ri-key">Feature</span>
+            <span class="ri-val">{{ selected_input_col }}</span>
+          </div>
+          <div class="result-item">
+            <span class="ri-key">Target</span>
+            <span class="ri-val">{{ selected_col }}</span>
+          </div>
+          <div class="result-item">
+            <span class="ri-key">Model</span>
+            <span class="ri-val">{{ model_name }}</span>
+          </div>
+          <div class="result-item">
+            <span class="ri-key">R²</span>
+            <span class="ri-val">{{ model_r2 | round(3) }}</span>
+          </div>
         {% else %}
-          <p>Results will be shown here.</p>
+          <div class="alert-box idle">Enter values above and click Run Prediction to see results.</div>
         {% endif %}
       </div>
+
     </div>
-  </main>
+  </aside>
+
+  <!-- ══════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════ -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <h1>Screen Time &amp; Mental Wellbeing</h1>
+      <span class="topbar-sub">Visual Analytics Dashboard</span>
+      <div class="stat-pills">
+        <div class="stat-pill">
+          <span class="sp-val accent">{{ row_count }}</span>
+          <span class="sp-lbl">records</span>
+        </div>
+        <div class="stat-pill">
+          <span class="sp-val green">{{ numeric_count }}</span>
+          <span class="sp-lbl">features</span>
+        </div>
+        <div class="stat-pill">
+          <span class="sp-val orange">{{ selected_pair_corr | round(3) }}</span>
+          <span class="sp-lbl">pair corr</span>
+        </div>
+        <div class="stat-pill">
+          <span class="sp-val purple">2</span>
+          <span class="sp-lbl">models</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Chart canvas -->
+    <div class="canvas">
+
+      <!-- Scatter -->
+      <div class="chart-card">
+        <div class="cc-header">
+          <span class="cc-title">Scatter Plot</span>
+          <span class="cc-sub">{{ selected_input_col }} → {{ selected_col }}</span>
+        </div>
+        <div class="plot-wrap">
+          <div id="scatter-chart" style="height:220px;"></div>
+        </div>
+      </div>
+
+      <!-- Distribution -->
+      <div class="chart-card">
+        <div class="cc-header">
+          <span class="cc-title">Distribution Comparison</span>
+          <span class="cc-sub">Key metrics spread</span>
+        </div>
+        <div class="plot-wrap">
+          <div id="distribution-chart" style="height:220px;"></div>
+        </div>
+      </div>
+
+      <!-- Heatmap + table (full-width) -->
+      <div class="chart-card full-row">
+        <div class="cc-header">
+          <span class="cc-title">Correlation Matrix</span>
+          <span class="cc-sub">Pairwise feature correlations</span>
+        </div>
+        <div id="corr-heatmap" style="height:260px;"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                {% for label in corr_labels %}
+                  <th>{{ label }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in corr_rows %}
+                <tr>
+                  <td class="row-head">{{ row.feature }}</td>
+                  {% for value in row.corr_values %}
+                    <td>{{ value }}</td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /canvas -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- JSON data -->
+<script id="scatter-points-data" type="application/json">{{ scatter_points | tojson }}</script>
+<script id="distribution-data"   type="application/json">{{ distribution_data | tojson }}</script>
+<script id="corr-labels-data"    type="application/json">{{ corr_labels | tojson }}</script>
+<script id="corr-values-data"    type="application/json">{{ corr_values | tojson }}</script>
+
+<script>
+  const scatterPoints    = JSON.parse(document.getElementById('scatter-points-data').textContent);
+  const distributionData = JSON.parse(document.getElementById('distribution-data').textContent);
+  const corrLabels       = JSON.parse(document.getElementById('corr-labels-data').textContent);
+  const corrValues       = JSON.parse(document.getElementById('corr-values-data').textContent);
+
+  const PAPER  = '#161b22';
+  const PLOT   = '#0d1117';
+  const GRID   = '#21262d';
+  const TICK   = '#8b949e';
+  const FONT   = { family: 'Inter, system-ui, sans-serif', color: '#e6edf3', size: 10 };
+  const MARGIN = { l: 44, r: 10, t: 6, b: 40 };
+
+  const BASE = {
+    paper_bgcolor: PAPER,
+    plot_bgcolor:  PLOT,
+    font: FONT,
+    margin: MARGIN
+  };
+
+  const axStyle = { gridcolor: GRID, tickcolor: TICK, tickfont: { size: 9.5, color: TICK }, linecolor: GRID, zerolinecolor: GRID };
+
+  /* ─── Scatter ─── */
+  Plotly.newPlot('scatter-chart',
+    [{
+      x: scatterPoints.map(p => p.x),
+      y: scatterPoints.map(p => p.y),
+      mode: 'markers',
+      type: 'scatter',
+      marker: { color: '#58a6ff', size: 5, opacity: 0.55, line: { color: '#0d1117', width: 0.5 } }
+    }],
+    {
+      ...BASE,
+      xaxis: { ...axStyle, title: { text: '{{ selected_input_col }}', font: { size: 9, color: TICK } } },
+      yaxis: { ...axStyle, title: { text: '{{ selected_col }}',       font: { size: 9, color: TICK } } }
+    },
+    { responsive: true, displayModeBar: false }
+  );
+
+  /* ─── Distribution ─── */
+  const PAL = ['#58a6ff','#3fb950','#d29922','#bc8cff'];
+  const distTraces = Object.entries(distributionData).map(([name, vals], i) => ({
+    y: vals, name,
+    type: 'box', boxmean: 'sd',
+    jitter: 0.25, pointpos: -1.5,
+    boxpoints: 'suspectedoutliers',
+    marker: { color: PAL[i % 4], size: 3, opacity: 0.55 },
+    line: { width: 1.2, color: PAL[i % 4] },
+    fillcolor: PAL[i % 4] + '22'
+  }));
+  Plotly.newPlot('distribution-chart', distTraces,
+    {
+      ...BASE,
+      yaxis: { ...axStyle, title: { text: 'Value', font: { size: 9, color: TICK } } },
+      legend: { orientation: 'h', y: -0.22, font: { size: 9, color: TICK }, bgcolor: 'transparent' }
+    },
+    { responsive: true, displayModeBar: false }
+  );
+
+  /* ─── Heatmap ─── */
+  Plotly.newPlot('corr-heatmap',
+    [{
+      z: corrValues,
+      x: corrLabels,
+      y: corrLabels,
+      type: 'heatmap',
+      colorscale: [
+        [0,   '#f85149'],
+        [0.5, '#21262d'],
+        [1,   '#58a6ff']
+      ],
+      zmin: -1, zmax: 1,
+      showscale: true,
+      colorbar: {
+        thickness: 10,
+        len: 0.85,
+        tickfont: { size: 8.5, color: TICK },
+        bordercolor: '#30363d'
+      }
+    }],
+    {
+      ...BASE,
+      margin: { l: 90, r: 70, t: 6, b: 90 },
+      xaxis: { tickangle: -40, tickfont: { size: 8.5, color: TICK }, linecolor: GRID },
+      yaxis: { autorange: 'reversed', tickfont: { size: 8.5, color: TICK }, linecolor: GRID }
+    },
+    { responsive: true, displayModeBar: false }
+  );
+</script>
 </body>
 </html>

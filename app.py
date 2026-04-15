@@ -113,17 +113,66 @@ def index():
             except ValueError:
                 error = "Please enter a valid number for input value."
 
+    active_input_col = selected_input_col or default_input_col
+    active_target_col = selected_col or default_col
+
+    scatter_points = (
+        df[[active_input_col, active_target_col]]
+        .dropna()
+        .rename(columns={active_input_col: "x", active_target_col: "y"})
+        .to_dict(orient="records")
+    )
+
+    distribution_cols = [
+        col
+        for col in [
+            "screen_time_hours",
+            "sleep_hours",
+            "stress_level_0_10",
+            "mental_wellness_index_0_100",
+        ]
+        if col in numeric_cols
+    ]
+    if not distribution_cols:
+        distribution_cols = numeric_cols[: min(4, len(numeric_cols))]
+
+    distribution_data = {
+        col: df[col].dropna().tolist() for col in distribution_cols
+    }
+
+    corr_df = df[numeric_cols].corr().fillna(0).round(3)
+    corr_labels = corr_df.columns.tolist()
+    corr_values = corr_df.values.tolist()
+    corr_rows = [
+        {"feature": row_name, "corr_values": row_values}
+        for row_name, row_values in zip(corr_labels, corr_values)
+    ]
+
+    selected_pair_corr = 0.0
+    if active_input_col in df.columns and active_target_col in df.columns:
+        selected_pair_corr = float(
+            df[[active_input_col, active_target_col]].corr().iloc[0, 1]
+        )
+
     return render_template(
         "index.html",
         input_cols=numeric_cols,
         targets=numeric_cols,
         prediction=prediction,
-        selected_input_col=selected_input_col or default_input_col,
-        selected_col=selected_col or default_col,
+        selected_input_col=active_input_col,
+        selected_col=active_target_col,
         entered_value=entered_value,
         model_name=model_name,
         model_r2=model_r2,
         error=error,
+        scatter_points=scatter_points,
+        corr_labels=corr_labels,
+        corr_values=corr_values,
+        corr_rows=corr_rows,
+        distribution_data=distribution_data,
+        row_count=len(df),
+        numeric_count=len(numeric_cols),
+        selected_pair_corr=selected_pair_corr,
     )
 
 
