@@ -3,131 +3,133 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Wellbeing Analytics Dashboard</title>
+  <title>Wellbeing Analytics · Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <style>
-    /* ═══════════════════════════════════════════
-       RESET & TOKENS
-    ═══════════════════════════════════════════ */
+    /* ── Reset ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
 
+    /* ── Design tokens ── */
     :root {
-      --bg:        #f0f4f8;
-      --surface:   #ffffff;
-      --surface2:  #f6f8fa;
-      --border:    #d1d9e0;
-      --border2:   #e4e9ee;
-      --text:      #1a202c;
-      --text-sub:  #5a6a7e;
-      --text-dim:  #a0adb8;
-      --accent:    #2563eb;
-      --accent2:   #3b82f6;
+      --bg:        #f1f5f9;
+      --white:     #ffffff;
+      --surface:   #f8fafc;
+      --border:    #e2e8f0;
+      --border2:   #edf2f7;
+      --text:      #0f172a;
+      --sub:       #64748b;
+      --dim:       #94a3b8;
+      --blue:      #2563eb;
+      --blue-lt:   #eff6ff;
+      --blue-mid:  #bfdbfe;
       --green:     #16a34a;
-      --orange:    #d97706;
+      --green-lt:  #f0fdf4;
+      --amber:     #d97706;
+      --amber-lt:  #fffbeb;
       --red:       #dc2626;
+      --red-lt:    #fef2f2;
       --purple:    #7c3aed;
       --teal:      #0891b2;
-      --sidebar-w: 240px;
+      --sw:        220px;   /* sidebar width */
     }
-
-    html, body { height: 100%; }
 
     body {
       font-family: 'Inter', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
       font-size: 13px;
-      line-height: 1.5;
-      overflow: hidden;
+      color: var(--text);
+      background: var(--bg);
+      overflow: hidden; /* no body scroll – inner panels scroll */
     }
 
-    /* ═══════════════════════════════════════════
-       APP SHELL — sidebar + main
-    ═══════════════════════════════════════════ */
-    .app {
+    /* ══════════════════════════════════════════
+       APP SHELL
+    ══════════════════════════════════════════ */
+    .shell {
       display: flex;
       height: 100vh;
-      width: 100vw;
-      overflow: hidden;
+      width:  100vw;
     }
 
-    /* ── Sidebar ── */
+    /* ──────────────────────
+       SIDEBAR
+    ────────────────────── */
     .sidebar {
-      width: var(--sidebar-w);
+      width: var(--sw);
       flex-shrink: 0;
-      background: var(--surface);
-      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-      box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      box-shadow: 2px 0 12px rgba(15,23,42,0.05);
     }
 
-    .sidebar-logo {
-      padding: 16px 16px 12px;
+    .sb-header {
+      padding: 14px 16px 12px;
       border-bottom: 1px solid var(--border);
     }
-    .sidebar-logo .brand {
-      font-size: 0.9rem;
+    .sb-brand {
+      font-size: 0.88rem;
       font-weight: 800;
-      color: var(--accent);
-      letter-spacing: 0.3px;
+      color: var(--blue);
+      letter-spacing: -0.2px;
     }
-    .sidebar-logo .tagline {
-      font-size: 0.7rem;
-      color: var(--text-sub);
+    .sb-tagline {
+      font-size: 0.68rem;
+      color: var(--sub);
       margin-top: 2px;
     }
 
-    .sidebar-body {
+    .sb-body {
       flex: 1;
       overflow-y: auto;
-      padding: 14px 12px;
+      padding: 14px 13px 18px;
       scrollbar-width: thin;
       scrollbar-color: var(--border) transparent;
     }
+    .sb-body::-webkit-scrollbar { width: 4px; }
+    .sb-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-    .sidebar-label {
-      font-size: 0.65rem;
+    .sb-section-label {
+      font-size: 0.62rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.12em;
-      color: var(--text-dim);
-      margin: 0 0 8px 4px;
+      color: var(--dim);
+      margin: 0 0 8px 2px;
     }
 
-    /* ── Predict form ── */
-    .predict-form { display: grid; gap: 10px; }
+    /* Form */
+    .predict-form { display: grid; gap: 9px; }
 
-    .field-group label {
+    .fgroup label {
       display: block;
       font-size: 0.72rem;
       font-weight: 600;
-      color: var(--text-sub);
+      color: var(--sub);
       margin-bottom: 4px;
     }
 
     select, input[type="number"] {
       width: 100%;
-      background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 7px;
-      padding: 7px 10px;
+      padding: 7px 9px;
       font: inherit;
       font-size: 0.78rem;
       color: var(--text);
+      background: var(--surface);
       outline: none;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
     select:focus, input[type="number"]:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
     }
-    select option { background: var(--surface); }
 
-    .btn-predict {
+    .btn-run {
       width: 100%;
       border: none;
       border-radius: 8px;
@@ -137,167 +139,168 @@
       font-weight: 700;
       cursor: pointer;
       color: #fff;
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-      letter-spacing: 0.2px;
-      box-shadow: 0 2px 8px rgba(37,99,235,0.3);
-      transition: filter 0.15s, transform 0.12s, box-shadow 0.15s;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      box-shadow: 0 2px 8px rgba(37,99,235,0.28);
+      letter-spacing: 0.1px;
+      transition: filter 0.15s, transform 0.12s;
     }
-    .btn-predict:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(37,99,235,0.35); }
-    .btn-predict:active { transform: translateY(0); }
+    .btn-run:hover  { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn-run:active { transform: translateY(0); }
 
-    /* Result panel inside sidebar */
-    .result-box {
-      margin-top: 14px;
+    /* Result area */
+    .result-zone {
+      margin-top: 16px;
       padding-top: 14px;
       border-top: 1px solid var(--border);
     }
-    .result-box .sidebar-label { margin-bottom: 10px; }
-    .result-item {
+
+    .ri {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
+      align-items: center;
       gap: 6px;
       padding: 5px 0;
       border-bottom: 1px solid var(--border2);
-      font-size: 0.73rem;
+      font-size: 0.72rem;
     }
-    .result-item:last-child { border-bottom: none; }
-    .result-item .ri-key { color: var(--text-sub); }
-    .result-item .ri-val { font-weight: 700; color: var(--text); text-align: right; word-break: break-all; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .result-item .ri-val.big { font-size: 1.05rem; color: var(--green); }
-    .alert-box {
+    .ri:last-child { border-bottom: none; }
+    .ri-k { color: var(--sub); flex-shrink: 0; }
+    .ri-v {
+      font-weight: 700;
+      text-align: right;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ri-v.big { font-size: 1rem; color: var(--green); }
+
+    .alert {
       border-radius: 8px;
       padding: 9px 11px;
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       line-height: 1.55;
+      border: 1px solid;
     }
-    .alert-box.err  { background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; }
-    .alert-box.idle { background: #f0f9ff; border: 1px solid #bae6fd; color: #0369a1; }
+    .alert.idle { background: var(--blue-lt);  border-color: var(--blue-mid); color: #1e40af; }
+    .alert.err  { background: var(--red-lt);   border-color: #fca5a5;         color: var(--red); }
 
-    /* ── Main area ── */
+    /* ──────────────────────
+       MAIN
+    ────────────────────── */
     .main {
       flex: 1;
       min-width: 0;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
     }
 
-    /* topbar */
+    /* Topbar */
     .topbar {
-      height: 46px;
+      height: 48px;
       flex-shrink: 0;
+      background: var(--white);
       border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 4px rgba(15,23,42,0.05);
       display: flex;
       align-items: center;
       padding: 0 18px;
-      gap: 16px;
-      background: var(--surface);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      gap: 14px;
     }
-    .topbar h1 {
-      font-size: 0.88rem;
+    .tb-title {
+      font-size: 0.9rem;
       font-weight: 700;
       color: var(--text);
       white-space: nowrap;
     }
-    .topbar-sub {
+    .tb-sub {
       font-size: 0.72rem;
-      color: var(--text-sub);
+      color: var(--sub);
       white-space: nowrap;
     }
 
-    /* stat pills in topbar */
-    .stat-pills {
+    /* Stat pills */
+    .pills {
       display: flex;
-      gap: 8px;
+      gap: 7px;
       margin-left: auto;
+      flex-wrap: nowrap;
     }
-    .stat-pill {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      padding: 3px 11px;
-      font-size: 0.7rem;
+    .pill {
       display: flex;
       align-items: center;
       gap: 5px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 12px;
       white-space: nowrap;
+      font-size: 0.7rem;
     }
-    .stat-pill .sp-val {
-      font-weight: 800;
-      font-size: 0.82rem;
-    }
-    .stat-pill .sp-val.accent  { color: #2563eb; }
-    .stat-pill .sp-val.green   { color: #16a34a; }
-    .stat-pill .sp-val.orange  { color: #d97706; }
-    .stat-pill .sp-val.purple  { color: #7c3aed; }
-    .stat-pill .sp-lbl { color: var(--text-sub); }
+    .pill-val { font-weight: 800; font-size: 0.82rem; }
+    .pill-val.c-blue   { color: var(--blue); }
+    .pill-val.c-green  { color: var(--green); }
+    .pill-val.c-amber  { color: var(--amber); }
+    .pill-val.c-purple { color: var(--purple); }
+    .pill-lbl { color: var(--sub); }
 
-    /* content canvas */
+    /* Canvas – scrollable chart area */
     .canvas {
       flex: 1;
       min-height: 0;
       overflow-y: auto;
-      padding: 14px 16px;
+      padding: 14px 16px 20px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto auto 1fr;
       gap: 12px;
+      grid-template-columns: 1fr 1fr;
       align-content: start;
       scrollbar-width: thin;
       scrollbar-color: var(--border) transparent;
     }
+    .canvas::-webkit-scrollbar { width: 5px; }
+    .canvas::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-    /* ── Chart cards ── */
-    .chart-card {
-      background: var(--surface);
+    /* Chart cards */
+    .ccard {
+      background: var(--white);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 12px 14px;
+      padding: 13px 14px 10px;
       display: flex;
       flex-direction: column;
       min-width: 0;
-      animation: fadeUp 0.4s ease;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      box-shadow: 0 1px 4px rgba(15,23,42,0.05);
+      animation: up 0.35s ease;
     }
-    .chart-card.full-row {
-      grid-column: 1 / -1;
-    }
-    .cc-header {
+    .ccard.wide { grid-column: 1 / -1; }
+
+    .ch-head {
       display: flex;
-      align-items: center;
+      align-items: baseline;
       justify-content: space-between;
       margin-bottom: 8px;
     }
-    .cc-title {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: 0.1px;
-    }
-    .cc-sub {
-      font-size: 0.68rem;
-      color: var(--text-sub);
-    }
-
-    .plot-wrap { flex: 1; min-height: 0; }
+    .ch-title { font-size: 0.8rem; font-weight: 700; }
+    .ch-sub   { font-size: 0.68rem; color: var(--sub); }
 
     /* Correlation table */
-    .table-wrap {
+    .tbl-wrap {
       overflow: auto;
-      max-height: 160px;
+      max-height: 150px;
       border: 1px solid var(--border);
       border-radius: 8px;
       margin-top: 10px;
       scrollbar-width: thin;
       scrollbar-color: var(--border) transparent;
     }
+    .tbl-wrap::-webkit-scrollbar { height: 4px; width: 4px; }
+    .tbl-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
     table {
       border-collapse: collapse;
       width: 100%;
-      min-width: 520px;
-      font-size: 0.7rem;
+      min-width: 540px;
+      font-size: 0.69rem;
     }
     th, td {
       border: 1px solid var(--border2);
@@ -307,61 +310,46 @@
       color: var(--text);
     }
     th {
-      background: #f1f5f9;
-      color: var(--text-sub);
+      background: var(--surface);
+      color: var(--sub);
       font-weight: 600;
-      font-size: 0.68rem;
+      font-size: 0.67rem;
       position: sticky;
       top: 0;
       z-index: 1;
     }
-    .row-head {
+    .th-row {
       text-align: left;
       font-weight: 600;
       position: sticky;
       left: 0;
       z-index: 2;
-      background: #f8fafc;
-      color: var(--text-sub);
+      background: var(--surface);
+      color: var(--sub);
     }
 
-    @keyframes fadeUp {
+    @keyframes up {
       from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-
-    /* scrollbars */
-    .sidebar-body::-webkit-scrollbar,
-    .canvas::-webkit-scrollbar,
-    .table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
-    .sidebar-body::-webkit-scrollbar-track,
-    .canvas::-webkit-scrollbar-track,
-    .table-wrap::-webkit-scrollbar-track { background: transparent; }
-    .sidebar-body::-webkit-scrollbar-thumb,
-    .canvas::-webkit-scrollbar-thumb,
-    .table-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
   </style>
 </head>
 <body>
 
-<div class="app">
+<div class="shell">
 
-  <!-- ══════════════════════════════
-       SIDEBAR
-  ══════════════════════════════ -->
+  <!-- ══════════ SIDEBAR ══════════ -->
   <aside class="sidebar">
-
-    <div class="sidebar-logo">
-      <div class="brand">Wellbeing Analytics</div>
-      <div class="tagline">Screen Time · Mental Health · ML</div>
+    <div class="sb-header">
+      <div class="sb-brand">Wellbeing Analytics</div>
+      <div class="sb-tagline">Screen Time · Mental Health · ML</div>
     </div>
 
-    <div class="sidebar-body">
+    <div class="sb-body">
 
-      <p class="sidebar-label">Run Prediction</p>
-
+      <p class="sb-section-label">Prediction</p>
       <form class="predict-form" method="post">
-        <div class="field-group">
+        <div class="fgroup">
           <label for="input_col">Input feature</label>
           <select id="input_col" name="input_col" required>
             {% for c in input_cols %}
@@ -369,21 +357,13 @@
             {% endfor %}
           </select>
         </div>
-
-        <div class="field-group">
+        <div class="fgroup">
           <label for="input_value">Value</label>
-          <input
-            id="input_value"
-            name="input_value"
-            type="number"
-            step="0.1"
-            placeholder="e.g. 4.5"
-            required
-            value="{{ entered_value if entered_value is not none else '' }}"
-          />
+          <input id="input_value" name="input_value" type="number" step="0.1"
+            placeholder="e.g. 4.5" required
+            value="{{ entered_value if entered_value is not none else '' }}" />
         </div>
-
-        <div class="field-group">
+        <div class="fgroup">
           <label for="target_col">Target feature</label>
           <select id="target_col" name="target_col" required>
             {% for c in targets %}
@@ -391,73 +371,51 @@
             {% endfor %}
           </select>
         </div>
-
-        <button class="btn-predict" type="submit">▶ Run Prediction</button>
+        <button class="btn-run" type="submit">▶ Run Prediction</button>
       </form>
 
-      <!-- Result -->
-      <div class="result-box">
-        <p class="sidebar-label">Result</p>
+      <div class="result-zone">
+        <p class="sb-section-label">Result</p>
         {% if error %}
-          <div class="alert-box err">{{ error }}</div>
+          <div class="alert err">{{ error }}</div>
         {% elif prediction is not none %}
-          <div class="result-item">
-            <span class="ri-key">Predicted value</span>
-            <span class="ri-val big">{{ prediction | round(2) }}</span>
-          </div>
-          <div class="result-item">
-            <span class="ri-key">Input</span>
-            <span class="ri-val">{{ entered_value }}</span>
-          </div>
-          <div class="result-item">
-            <span class="ri-key">Feature</span>
-            <span class="ri-val">{{ selected_input_col }}</span>
-          </div>
-          <div class="result-item">
-            <span class="ri-key">Target</span>
-            <span class="ri-val">{{ selected_col }}</span>
-          </div>
-          <div class="result-item">
-            <span class="ri-key">Model</span>
-            <span class="ri-val">{{ model_name }}</span>
-          </div>
-          <div class="result-item">
-            <span class="ri-key">R²</span>
-            <span class="ri-val">{{ model_r2 | round(3) }}</span>
-          </div>
+          <div class="ri"><span class="ri-k">Predicted</span><span class="ri-v big">{{ prediction | round(2) }}</span></div>
+          <div class="ri"><span class="ri-k">Input value</span><span class="ri-v">{{ entered_value }}</span></div>
+          <div class="ri"><span class="ri-k">Feature</span><span class="ri-v" title="{{ selected_input_col }}">{{ selected_input_col }}</span></div>
+          <div class="ri"><span class="ri-k">Target</span><span class="ri-v" title="{{ selected_col }}">{{ selected_col }}</span></div>
+          <div class="ri"><span class="ri-k">Model</span><span class="ri-v">{{ model_name }}</span></div>
+          <div class="ri"><span class="ri-k">R²</span><span class="ri-v">{{ model_r2 | round(3) }}</span></div>
         {% else %}
-          <div class="alert-box idle">Enter values above and click Run Prediction to see results.</div>
+          <div class="alert idle">Fill the form and click <strong>Run Prediction</strong> to see results here.</div>
         {% endif %}
       </div>
 
     </div>
   </aside>
 
-  <!-- ══════════════════════════════
-       MAIN CONTENT
-  ══════════════════════════════ -->
+  <!-- ══════════ MAIN ══════════ -->
   <div class="main">
 
     <!-- Topbar -->
     <header class="topbar">
-      <h1>Screen Time &amp; Mental Wellbeing</h1>
-      <span class="topbar-sub">Visual Analytics Dashboard</span>
-      <div class="stat-pills">
-        <div class="stat-pill">
-          <span class="sp-val accent">{{ row_count }}</span>
-          <span class="sp-lbl">records</span>
+      <span class="tb-title">Screen Time &amp; Mental Wellbeing</span>
+      <span class="tb-sub">Visual Analytics Dashboard</span>
+      <div class="pills">
+        <div class="pill">
+          <span class="pill-val c-blue">{{ row_count }}</span>
+          <span class="pill-lbl">records</span>
         </div>
-        <div class="stat-pill">
-          <span class="sp-val green">{{ numeric_count }}</span>
-          <span class="sp-lbl">features</span>
+        <div class="pill">
+          <span class="pill-val c-green">{{ numeric_count }}</span>
+          <span class="pill-lbl">features</span>
         </div>
-        <div class="stat-pill">
-          <span class="sp-val orange">{{ selected_pair_corr | round(3) }}</span>
-          <span class="sp-lbl">pair corr</span>
+        <div class="pill">
+          <span class="pill-val c-amber">{{ selected_pair_corr | round(3) }}</span>
+          <span class="pill-lbl">pair corr</span>
         </div>
-        <div class="stat-pill">
-          <span class="sp-val purple">2</span>
-          <span class="sp-lbl">models</span>
+        <div class="pill">
+          <span class="pill-val c-purple">2</span>
+          <span class="pill-lbl">models</span>
         </div>
       </div>
     </header>
@@ -466,51 +424,43 @@
     <div class="canvas">
 
       <!-- Scatter -->
-      <div class="chart-card">
-        <div class="cc-header">
-          <span class="cc-title">Scatter Plot</span>
-          <span class="cc-sub">{{ selected_input_col }} → {{ selected_col }}</span>
+      <div class="ccard">
+        <div class="ch-head">
+          <span class="ch-title">Scatter Plot</span>
+          <span class="ch-sub">{{ selected_input_col }} → {{ selected_col }}</span>
         </div>
-        <div class="plot-wrap">
-          <div id="scatter-chart" style="height:220px;"></div>
-        </div>
+        <div id="scatter-chart" style="height:210px;"></div>
       </div>
 
       <!-- Distribution -->
-      <div class="chart-card">
-        <div class="cc-header">
-          <span class="cc-title">Distribution Comparison</span>
-          <span class="cc-sub">Key metrics spread</span>
+      <div class="ccard">
+        <div class="ch-head">
+          <span class="ch-title">Distribution Comparison</span>
+          <span class="ch-sub">Key metric spread</span>
         </div>
-        <div class="plot-wrap">
-          <div id="distribution-chart" style="height:220px;"></div>
-        </div>
+        <div id="distribution-chart" style="height:210px;"></div>
       </div>
 
-      <!-- Heatmap + table (full-width) -->
-      <div class="chart-card full-row">
-        <div class="cc-header">
-          <span class="cc-title">Correlation Matrix</span>
-          <span class="cc-sub">Pairwise feature correlations</span>
+      <!-- Correlation heatmap + table (full width) -->
+      <div class="ccard wide">
+        <div class="ch-head">
+          <span class="ch-title">Correlation Matrix</span>
+          <span class="ch-sub">Pairwise feature correlations — heatmap &amp; table</span>
         </div>
-        <div id="corr-heatmap" style="height:260px;"></div>
-        <div class="table-wrap">
+        <div id="corr-heatmap" style="height:270px;"></div>
+        <div class="tbl-wrap">
           <table>
             <thead>
               <tr>
                 <th>Feature</th>
-                {% for label in corr_labels %}
-                  <th>{{ label }}</th>
-                {% endfor %}
+                {% for label in corr_labels %}<th>{{ label }}</th>{% endfor %}
               </tr>
             </thead>
             <tbody>
               {% for row in corr_rows %}
                 <tr>
-                  <td class="row-head">{{ row.feature }}</td>
-                  {% for value in row.corr_values %}
-                    <td>{{ value }}</td>
-                  {% endfor %}
+                  <td class="th-row">{{ row.feature }}</td>
+                  {% for v in row.corr_values %}<td>{{ v }}</td>{% endfor %}
                 </tr>
               {% endfor %}
             </tbody>
@@ -520,105 +470,72 @@
 
     </div><!-- /canvas -->
   </div><!-- /main -->
-</div><!-- /app -->
+</div><!-- /shell -->
 
-<!-- JSON data -->
-<script id="scatter-points-data" type="application/json">{{ scatter_points | tojson }}</script>
-<script id="distribution-data"   type="application/json">{{ distribution_data | tojson }}</script>
-<script id="corr-labels-data"    type="application/json">{{ corr_labels | tojson }}</script>
-<script id="corr-values-data"    type="application/json">{{ corr_values | tojson }}</script>
+<!-- Data islands -->
+<script id="d-scatter" type="application/json">{{ scatter_points | tojson }}</script>
+<script id="d-dist"    type="application/json">{{ distribution_data | tojson }}</script>
+<script id="d-clabels" type="application/json">{{ corr_labels | tojson }}</script>
+<script id="d-cvals"   type="application/json">{{ corr_values | tojson }}</script>
 
 <script>
-  const scatterPoints    = JSON.parse(document.getElementById('scatter-points-data').textContent);
-  const distributionData = JSON.parse(document.getElementById('distribution-data').textContent);
-  const corrLabels       = JSON.parse(document.getElementById('corr-labels-data').textContent);
-  const corrValues       = JSON.parse(document.getElementById('corr-values-data').textContent);
+  const SP  = JSON.parse(document.getElementById('d-scatter').textContent);
+  const DD  = JSON.parse(document.getElementById('d-dist').textContent);
+  const CL  = JSON.parse(document.getElementById('d-clabels').textContent);
+  const CV  = JSON.parse(document.getElementById('d-cvals').textContent);
 
-  const PAPER  = '#ffffff';
-  const PLOT   = '#f8fafc';
-  const GRID   = '#e2e8f0';
-  const TICK   = '#64748b';
-  const FONT   = { family: 'Inter, system-ui, sans-serif', color: '#1a202c', size: 10 };
-  const MARGIN = { l: 46, r: 10, t: 6, b: 40 };
+  /* shared Plotly theme */
+  const PP  = '#ffffff';   /* paper */
+  const PL  = '#f8fafc';   /* plot bg */
+  const GC  = '#e2e8f0';   /* grid */
+  const TC  = '#94a3b8';   /* tick color */
+  const F   = { family: 'Inter, system-ui, sans-serif', size: 10, color: '#0f172a' };
+  const AX  = { gridcolor: GC, tickcolor: TC, tickfont: { size: 9, color: TC }, linecolor: '#cbd5e1', zerolinecolor: GC };
 
-  const BASE = {
-    paper_bgcolor: PAPER,
-    plot_bgcolor:  PLOT,
-    font: FONT,
-    margin: MARGIN
-  };
-
-  const axStyle = {
-    gridcolor: GRID,
-    tickcolor: TICK,
-    tickfont:  { size: 9.5, color: TICK },
-    linecolor: '#cbd5e1',
-    zerolinecolor: GRID
-  };
-
-  /* ─── Scatter ─── */
+  /* ── Scatter ── */
   Plotly.newPlot('scatter-chart',
-    [{
-      x: scatterPoints.map(p => p.x),
-      y: scatterPoints.map(p => p.y),
-      mode: 'markers',
-      type: 'scatter',
-      marker: { color: '#2563eb', size: 5, opacity: 0.5, line: { color: '#ffffff', width: 0.5 } }
+    [{ x: SP.map(p=>p.x), y: SP.map(p=>p.y),
+       mode: 'markers', type: 'scatter',
+       marker: { color: '#2563eb', size: 5, opacity: 0.5, line: { color: '#fff', width: 0.4 } }
     }],
-    {
-      ...BASE,
-      xaxis: { ...axStyle, title: { text: '{{ selected_input_col }}', font: { size: 9, color: TICK } } },
-      yaxis: { ...axStyle, title: { text: '{{ selected_col }}',       font: { size: 9, color: TICK } } }
+    { paper_bgcolor: PP, plot_bgcolor: PL, font: F,
+      margin: { l: 46, r: 10, t: 8, b: 42 },
+      xaxis: { ...AX, title: { text: '{{ selected_input_col }}', font: { size: 9, color: TC } } },
+      yaxis: { ...AX, title: { text: '{{ selected_col }}',       font: { size: 9, color: TC } } }
     },
     { responsive: true, displayModeBar: false }
   );
 
-  /* ─── Distribution ─── */
-  const PAL = ['#2563eb', '#16a34a', '#d97706', '#7c3aed'];
-  const distTraces = Object.entries(distributionData).map(([name, vals], i) => ({
-    y: vals, name,
-    type: 'box', boxmean: 'sd',
-    jitter: 0.25, pointpos: -1.5,
-    boxpoints: 'suspectedoutliers',
-    marker: { color: PAL[i % 4], size: 3, opacity: 0.5 },
-    line: { width: 1.2, color: PAL[i % 4] },
-    fillcolor: PAL[i % 4] + '18'
-  }));
-  Plotly.newPlot('distribution-chart', distTraces,
-    {
-      ...BASE,
-      yaxis: { ...axStyle, title: { text: 'Value', font: { size: 9, color: TICK } } },
-      legend: { orientation: 'h', y: -0.22, font: { size: 9, color: TICK }, bgcolor: 'rgba(0,0,0,0)' }
+  /* ── Distribution ── */
+  const PAL = ['#2563eb','#16a34a','#d97706','#7c3aed'];
+  Plotly.newPlot('distribution-chart',
+    Object.entries(DD).map(([name, vals], i) => ({
+      y: vals, name, type: 'box', boxmean: 'sd',
+      jitter: 0.25, pointpos: -1.5, boxpoints: 'suspectedoutliers',
+      marker: { color: PAL[i%4], size: 3, opacity: 0.45 },
+      line: { width: 1.2, color: PAL[i%4] },
+      fillcolor: PAL[i%4] + '1a'
+    })),
+    { paper_bgcolor: PP, plot_bgcolor: PL, font: F,
+      margin: { l: 44, r: 8, t: 8, b: 44 },
+      yaxis: { ...AX, title: { text: 'Value', font: { size: 9, color: TC } } },
+      legend: { orientation: 'h', y: -0.24, font: { size: 9, color: TC }, bgcolor: 'transparent' }
     },
     { responsive: true, displayModeBar: false }
   );
 
-  /* ─── Heatmap ─── */
+  /* ── Heatmap ── */
   Plotly.newPlot('corr-heatmap',
-    [{
-      z: corrValues,
-      x: corrLabels,
-      y: corrLabels,
-      type: 'heatmap',
-      colorscale: [
-        [0,   '#dc2626'],
-        [0.5, '#f1f5f9'],
-        [1,   '#2563eb']
-      ],
-      zmin: -1, zmax: 1,
-      showscale: true,
-      colorbar: {
-        thickness: 10,
-        len: 0.85,
-        tickfont: { size: 8.5, color: TICK },
-        bordercolor: '#e2e8f0'
-      }
+    [{ z: CV, x: CL, y: CL, type: 'heatmap',
+       colorscale: [[0,'#dc2626'],[0.5,'#f1f5f9'],[1,'#2563eb']],
+       zmin: -1, zmax: 1, showscale: true,
+       colorbar: { thickness: 10, len: 0.85,
+         tickfont: { size: 8, color: TC }, bordercolor: GC }
     }],
-    {
-      ...BASE,
-      margin: { l: 90, r: 70, t: 6, b: 90 },
-      xaxis: { tickangle: -40, tickfont: { size: 8.5, color: TICK }, linecolor: '#cbd5e1' },
-      yaxis: { autorange: 'reversed', tickfont: { size: 8.5, color: TICK }, linecolor: '#cbd5e1' }
+    { paper_bgcolor: PP, plot_bgcolor: PL, font: F,
+      margin: { l: 90, r: 70, t: 8, b: 90 },
+      xaxis: { tickangle: -40, tickfont: { size: 8.5, color: TC }, linecolor: '#cbd5e1' },
+      yaxis: { autorange: 'reversed', tickfont: { size: 8.5, color: TC }, linecolor: '#cbd5e1' }
     },
     { responsive: true, displayModeBar: false }
   );
